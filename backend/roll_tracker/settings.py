@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,6 +35,8 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'allauth',
+    'allauth.account',
     'rest_framework.authtoken',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -42,7 +48,10 @@ INSTALLED_APPS = [
     'accounts',
 ]
 
+
+
 MIDDLEWARE = [
+    'allauth.account.middleware.AccountMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -145,3 +154,19 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ]
 }
+
+AUTHENTICATION_CLASSES = [
+    # ...
+    'allauth.account.auth_backends.AuthenticationBackend',
+    # ...
+]
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587  # Use the appropriate port for your email provider
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'kendbonnette@gmail.com'
+EMAIL_HOST_PASSWORD = os.environ['GMAIL_APP_PASSWORD']
+# ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+# ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 7

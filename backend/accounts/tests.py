@@ -15,6 +15,7 @@ class SignupViewTest(TestCase):
         # Define test data
         data = {
             "username": "testuser",
+            "email": "testuser@example.com",
             "password": "Testpassword123!",
         }
 
@@ -25,7 +26,7 @@ class SignupViewTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Check if a user with the given username exists in the database
-        self.assertTrue(User.objects.filter(username="testuser").exists())
+        self.assertTrue(User.objects.filter(username="testuser", email="testuser@example.com").exists())
 
     def test_invalid_signup_view(self):
         # Define invalid test data (missing required field)
@@ -40,7 +41,7 @@ class SignupViewTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # Check if a user with the given username does not exist in the database
-        self.assertFalse(User.objects.filter(username="testuser").exists())
+        self.assertFalse(User.objects.filter(username="testuser", email="testuser@example.com").exists())
 
     def test_password_validation(self):
         # Test valid password
