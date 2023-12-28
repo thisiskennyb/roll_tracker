@@ -19,6 +19,7 @@ from django.urls import path, include
 from rest_registration.api.views import send_reset_password_link, reset_password
 
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),

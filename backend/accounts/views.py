@@ -9,16 +9,20 @@ from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from django.core.mail import EmailMessage   
 from .tokens import email_verification_token
-
-
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.encoding import force_bytes
 # from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_encode
 from django.utils.http import urlsafe_base64_decode
 from django.template.loader import render_to_string
-
 from django.shortcuts import render
+
+#changong password imports
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import update_session_auth_hash
+from .serializers import ChangePasswordSerializer
+
 
 class SignupView(CreateAPIView):
     queryset = User.objects.all()
@@ -26,30 +30,25 @@ class SignupView(CreateAPIView):
     permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
-        # Extract username, password, and email from serializer
-        username = serializer.validated_data["username"]
-        password = serializer.validated_data["password"]
-        email = serializer.validated_data["email"]
+        validated_data = serializer.validated_data
+        username = validated_data["username"]
+        email = validated_data["email"]
+        password = validated_data["password"]
 
         # Validate the password using Django's password validators
         try:
             validate_password(password, user=User)
         except ValidationError as e:
-            # Raise a serializers.ValidationError to trigger a 400 Bad Request response
             raise serializers.ValidationError(detail=e.messages)
 
         # Create the user if the password is valid
         user = User.objects.create_user(username=username, email=email, password=password)
-        serializer.instance = user
-        serializer.validated_data['user'] = user
-        serializer.validated_data['user_id'] = user.id
         user.is_active = False
         user.save()
 
         self._send_email_verification(user)
 
         return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
-
 
     def _send_email_verification(self, user):
         print(user.email.rstrip(),"this right here")
@@ -64,3 +63,20 @@ class SignupView(CreateAPIView):
             }
         )
         EmailMessage(to=[user.email], subject=subject, body=body).send()
+
+# view for changing password
+        
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    if request.method == 'POST':
+        serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            user = request.user
+            if user.check_password(serializer.data.get('old_password')):
+                user.set_password(serializer.data.get('new_password'))
+                user.save()
+                update_session_auth_hash(request, user)  # To update session after password change
+                return Response({'message': 'Password changed successfully.'}, status=status.HTTP_200_OK)
+            return Response({'error': 'Incorrect old password.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
