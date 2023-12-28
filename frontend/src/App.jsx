@@ -5,7 +5,9 @@ import Home from './routes/Home'
 import UserProfile from './routes/UserProfile'
 import ResetPassword from './routes/ResetPassword'
 import EmailReset from './routes/EmailReset'
+import EmailVerification from './routes/EmailVerification'
 import './App.css'
+
 
 function App() {
 
@@ -18,6 +20,7 @@ function App() {
       <Route path="/profile" element={<UserProfile />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/email-reset" element={<EmailReset />} />
+      <Route path="/email-verification" element={<EmailVerification />} />
      </Routes>
      </Router>
   )
